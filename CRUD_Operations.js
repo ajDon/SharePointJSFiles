@@ -136,7 +136,7 @@ var CRUD = CRUD || {};
     CRUD.getListMetaData = function (listTitle) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
         return jQuery.ajax({
-            url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')?jQueryselect=ListItemEntityTypeFullName",
+            url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')?$select=ListItemEntityTypeFullName",
             async: false,
             type: "GET",
             headers: {
