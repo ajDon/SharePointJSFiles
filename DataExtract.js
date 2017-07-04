@@ -354,4 +354,4 @@ var ExtractFromView = {};
             }
         }
     };
-})($);
+})(jQuery);
