@@ -1,13 +1,13 @@
-var JCISPEAR = JCISPEAR || {};
+var fullCalendar = fullCalendar || {};
 
-(function () {
+(function ($) {
     "use strict";
-    JCISPEAR.onSharepointReady = function () {
+    fullCalendar.onSharepointReady = function () {
         var showPopup = null;
         if (showPopup == null)
             showPopup = SP.UI.ModalDialog.showWaitScreenWithNoClose('Working on it...');
 
-        JCISPEAR.loadCalendar(jQuery);
+        fullCalendar.loadCalendar($);
 
         setTimeout(function () {
             if (showPopup != null)
@@ -16,8 +16,8 @@ var JCISPEAR = JCISPEAR || {};
         }, 1500);
     };
 
-    JCISPEAR.loadCalendar = function (jQuery) {
-        var jsonData = JCISPEAR.loadDataFromList('Calendar');
+    fullCalendar.loadCalendar = function ($) {
+        var jsonData = fullCalendar.loadDataFromList('Calendar');
         console.info(jsonData);
         var options = {
             events_source: function () {
@@ -31,19 +31,19 @@ var JCISPEAR = JCISPEAR || {};
                 if (!events) {
                     return;
                 }
-                var list = jQuery('#eventlist');
+                var list = $('#eventlist');
                 list.html('');
 
-                jQuery.each(events, function (key, val) {
-                    jQuery(document.createElement('li'))
+                $.each(events, function (key, val) {
+                    $(document.createElement('li'))
                         .html('<a href="' + val.url + '">' + val.title + '</a>')
                         .appendTo(list);
                 });
             },
             onAfterViewLoad: function (view) {
-                jQuery('.page-header h3').text(this.getTitle());
-                jQuery('.btn-group button').removeClass('active');
-                jQuery('button[data-calendar-view="' + view + '"]').addClass('active');
+                $('.page-header h3').text(this.getTitle());
+                $('.btn-group button').removeClass('active');
+                $('button[data-calendar-view="' + view + '"]').addClass('active');
             },
             classes: {
                 months: {
@@ -52,29 +52,29 @@ var JCISPEAR = JCISPEAR || {};
             }
         };
         var calendar;
-        jQuery.getScript('../SiteAssets/js/calendar.js', function () {
-            calendar = jQuery('#calendar').calendar(options);
+        $.getScript('../SiteAssets/js/calendar.js', function () {
+            calendar = $('#calendar').calendar(options);
 
-            jQuery('.btn-group button[data-calendar-nav]').each(function () {
-                var jQuerythis = jQuery(this);
+            $('.btn-group button[data-calendar-nav]').each(function () {
+                var $this = $(this);
 
-                jQuerythis.click(function (evt) {
+                $this.click(function (evt) {
                     evt.preventDefault();
-                    calendar.navigate(jQuerythis.data('calendar-nav'));
+                    calendar.navigate($this.data('calendar-nav'));
                 });
             });
 
-            jQuery('.btn-group button[data-calendar-view]').each(function () {
-                var jQuerythis = jQuery(this);
-                jQuerythis.click(function (evt) {
+            $('.btn-group button[data-calendar-view]').each(function () {
+                var $this = $(this);
+                $this.click(function (evt) {
                     evt.preventDefault();
-                    calendar.view(jQuerythis.data('calendar-view'));
+                    calendar.view($this.data('calendar-view'));
 
                 });
             });
 
-            jQuery('#first_day').change(function () {
-                var value = jQuery(this).val();
+            $('#first_day').change(function () {
+                var value = $(this).val();
                 value = value.length ? parseInt(value) : null;
                 calendar.setOptions({
                     first_day: value
@@ -82,39 +82,39 @@ var JCISPEAR = JCISPEAR || {};
                 calendar.view();
             });
 
-            jQuery('#language').change(function () {
-                calendar.setLanguage(jQuery(this).val());
+            $('#language').change(function () {
+                calendar.setLanguage($(this).val());
                 calendar.view();
             });
 
-            jQuery('#events-in-modal').change(function () {
-                var val = jQuery(this).is(':checked') ? jQuery(this).val() : null;
+            $('#events-in-modal').change(function () {
+                var val = $(this).is(':checked') ? $(this).val() : null;
                 calendar.setOptions({
                     modal: val
                 });
             });
-            jQuery('#format-12-hours').change(function () {
-                var val = jQuery(this).is(':checked') ? true : false;
+            $('#format-12-hours').change(function () {
+                var val = $(this).is(':checked') ? true : false;
                 calendar.setOptions({
                     format12: val
                 });
                 calendar.view();
             });
-            jQuery('#show_wbn').change(function () {
-                var val = jQuery(this).is(':checked') ? true : false;
+            $('#show_wbn').change(function () {
+                var val = $(this).is(':checked') ? true : false;
                 calendar.setOptions({
                     display_week_numbers: val
                 });
                 calendar.view();
             });
-            jQuery('#show_wb').change(function () {
-                var val = jQuery(this).is(':checked') ? true : false;
+            $('#show_wb').change(function () {
+                var val = $(this).is(':checked') ? true : false;
                 calendar.setOptions({
                     weekbox: val
                 });
                 calendar.view();
             });
-            jQuery('#events-modal .modal-header, #events-modal .modal-footer').click(function (e) {
+            $('#events-modal .modal-header, #events-modal .modal-footer').click(function (e) {
                 //e.preventDefault();
                 //e.stopPropagation();
             });
@@ -123,24 +123,24 @@ var JCISPEAR = JCISPEAR || {};
 
 
 
-    JCISPEAR.createJSONForCalendar = function (jsonData) {
+    fullCalendar.createJSONForCalendar = function (jsonData) {
         //Ashish
         //Fetch Category Data
         var eventClasses = {};
-        JCISPEAR.getListDataByFilter("Events-Category Master LIst", { $select: "Title,JCISPEAREventClass" }).success(function (data) {
+        fullCalendar.getListDataByFilter("Events-Category Master LIst", { $select: "Title,fullCalendarEventClass" }).success(function (data) {
             //eventCategory = data.d.results;
-            jQuery(".legendUl").empty();
+            $(".legendUl").empty();
 
-            jQuery(data.d.results).each(function (i, o) {
+            $(data.d.results).each(function (i, o) {
                 var eventClass = "";
-                if (o.JCISPEAREventClass) {
-                    eventClass = "event-" + o.JCISPEAREventClass.replace(/ /g, '').toLowerCase();
+                if (o.fullCalendarEventClass) {
+                    eventClass = "event-" + o.fullCalendarEventClass.replace(/ /g, '').toLowerCase();
                 }
                 eventClasses[o.Title] = eventClass;
-                if (jQuery('.legendUl .' + eventClass).length == 0)
-                    jQuery(".legendUl").append(jQuery('<li><span class="circleLegendOne ' + eventClass + '"></span><label class="label-legend">' + o.Title + '</label></li>'));
+                if ($('.legendUl .' + eventClass).length == 0)
+                    $(".legendUl").append($('<li><span class="circleLegendOne ' + eventClass + '"></span><label class="label-legend">' + o.Title + '</label></li>'));
                 else {
-                    var legendLabel = jQuery('.legendUl .' + eventClass).next();
+                    var legendLabel = $('.legendUl .' + eventClass).next();
                     legendLabel.text(legendLabel.text() + ', ' + o.Title);
                 }
             })
@@ -151,11 +151,11 @@ var JCISPEAR = JCISPEAR || {};
         var sourceJSON = [],
             displayMode = 'Display',
             sourceUrl = encodeURIComponent(window.location.href);
-        if (typeof (sessionStorage["SPEAR Admin"]) === "undefined" || typeof (sessionStorage["SPEAR Event Admin"]) === "undefined") {
-            JCICommon.verifyCurrentUserGroup("SPEAR Admin");
-            JCICommon.verifyCurrentUserGroup("SPEAR Event Admin");
+        if (typeof (sessionStorage["Admin"]) === "undefined" || typeof (sessionStorage["Event Admin"]) === "undefined") {
+            JCICommon.verifyCurrentUserGroup("Admin");
+            JCICommon.verifyCurrentUserGroup("Event Admin");
         }
-        if (sessionStorage["SPEAR Admin"] === "Yes" || sessionStorage["SPEAR Event Admin"] === "Yes") {
+        if (sessionStorage["Admin"] === "Yes" || sessionStorage["Event Admin"] === "Yes") {
             displayMode = 'Edit';
         }
         for (var i = 0; i < jsonData.length; i++) {
@@ -163,7 +163,7 @@ var JCISPEAR = JCISPEAR || {};
                 Title = jsonData[i]['Title'],
                 startDate = jsonData[i]['EventDate'],
                 endDate = jsonData[i]['EndDate'],
-                category = jsonData[i]['JCISPEAREventsCategory']['Title'],
+                category = jsonData[i]['fullCalendarEventsCategory']['Title'],
                 _startDate = new Date(startDate),
                 _endDate = new Date(endDate),
                 eventClass = eventClasses[category],
@@ -183,7 +183,7 @@ var JCISPEAR = JCISPEAR || {};
         return sourceJSON;
     }
 
-    JCISPEAR.loadDataFromList = function (listTitle) {
+    fullCalendar.loadDataFromList = function (listTitle) {
 
         var Category = GetUrlKeyValue('c');
         var StartDate = GetUrlKeyValue('d');
@@ -191,13 +191,13 @@ var JCISPEAR = JCISPEAR || {};
         var FilterField2 = GetUrlKeyValue('FilterField2');
 
         if (FilterField1) {
-            if (FilterField1 == "JCISPEAREventsCategory")
+            if (FilterField1 == "fullCalendarEventsCategory")
                 Category = GetUrlKeyValue('FilterValue1');
             if (FilterField1 == "EventDate")
                 StartDate = GetUrlKeyValue('FilterValue1');
         }
         if (FilterField2) {
-            if (FilterField2 == "JCISPEAREventsCategory")
+            if (FilterField2 == "fullCalendarEventsCategory")
                 Category = GetUrlKeyValue('FilterValue2');
             if (FilterField2 == "EventDate")
                 StartDate = GetUrlKeyValue('FilterValue2');
@@ -205,13 +205,13 @@ var JCISPEAR = JCISPEAR || {};
         //console.log(Category + "\n" + StartDate);
         var jsonData,
             filterJSON = {
-                $select: 'Id,Title,JCISPEAREventsCategory/Title,JCISPEAREventsCategory/Id,EventDate,EndDate,ParticipantsPicker/Id,ParticipantsPicker/Title,Author/Id,Author/Title',
-                $expand: 'ParticipantsPicker,Author,JCISPEAREventsCategory'
+                $select: 'Id,Title,fullCalendarEventsCategory/Title,fullCalendarEventsCategory/Id,EventDate,EndDate,ParticipantsPicker/Id,ParticipantsPicker/Title,Author/Id,Author/Title',
+                $expand: 'ParticipantsPicker,Author,fullCalendarEventsCategory'
             },
             filter = '( (ParticipantsPicker/Id eq ' + _spPageContextInfo.userId + ' or Author/Id eq ' + _spPageContextInfo.userId + ')';
 
         if (!SP.ScriptUtility.isNullOrEmptyString(Category)) {
-            filter += "and JCISPEAREventsCategory/Title eq '" + Category + "'"
+            filter += "and fullCalendarEventsCategory/Title eq '" + Category + "'"
         }
 
         if (!SP.ScriptUtility.isNullOrEmptyString(filter)) {
@@ -220,31 +220,31 @@ var JCISPEAR = JCISPEAR || {};
         }
 
 
-        JCISPEAR.getListDataByFilter(listTitle, filterJSON)
+        fullCalendar.getListDataByFilter(listTitle, filterJSON)
             .success(function (data) {
                 console.info(data);
                 jsonData = data.d.results
                 if (!SP.ScriptUtility.isNullOrEmptyString(StartDate)) {
-                    jsonData = JCISPEAR.filterJSONByDate(jsonData, StartDate)
+                    jsonData = fullCalendar.filterJSONByDate(jsonData, StartDate)
                 }
             })
             .fail(function (error) {
                 console.error(error);
-                JCISPEAR.errorNotify(listTitle, 'Error Occurred while fetching the data from ' + listTitle);
+                fullCalendar.errorNotify(listTitle, 'Error Occurred while fetching the data from ' + listTitle);
             })
 
-        return JCISPEAR.createJSONForCalendar(jsonData);
+        return fullCalendar.createJSONForCalendar(jsonData);
     }
 
-    JCISPEAR.filterJSONByDate = function (jsonData, filteredDate) {
+    fullCalendar.filterJSONByDate = function (jsonData, filteredDate) {
         var _filteredDate = new Date(filteredDate),
-            newJSONData = jQuery(jsonData).filter(function (index, value) {
+            newJSONData = $(jsonData).filter(function (index, value) {
                 return (new Date(value['EventDate']) >= _filteredDate)
             })
         return newJSONData;
     }
 
-    JCISPEAR.errorNotify = function (messageTitle, message) {
+    fullCalendar.errorNotify = function (messageTitle, message) {
         try {
             var notificationData = new SPStatusNotificationData("", STSHtmlEncode(message), "../SiteAssets/images/error_notify.png", null),
                 notification = new SPNotification(SPNotifications.ContainerID.Status, STSHtmlEncode(messageTitle), false, null, null, notificationData);
@@ -254,7 +254,7 @@ var JCISPEAR = JCISPEAR || {};
         }
     }
 
-    JCISPEAR.successNotify = function (messageTitle, message) {
+    fullCalendar.successNotify = function (messageTitle, message) {
         try {
             var notificationData = new SPStatusNotificationData("", STSHtmlEncode(message), "../SiteAssets/images/success_notify.png", null),
                 notification = new SPNotification(SPNotifications.ContainerID.Status, STSHtmlEncode(messageTitle), false, null, null, notificationData);
@@ -264,58 +264,57 @@ var JCISPEAR = JCISPEAR || {};
         }
     }
 
-})();
+    $(document).ready(function () {
+        SP.SOD.loadMultiple(['sp.js', 'sp.ui.dialog.js'], fullCalendar.onSharepointReady);
 
-jQuery(document).ready(function () {
-    SP.SOD.loadMultiple(['sp.js', 'sp.ui.dialog.js'], JCISPEAR.onSharepointReady);
+        // if (typeof (sessionStorage["Admin"]) === "undefined" ||
+        //     typeof (sessionStorage["HR Scorecard Admin"]) === "undefined" ||
+        //     typeof (sessionStorage["HR Scorecard User"]) === "undefined" ||
+        //     typeof (sessionStorage["Document User"]) === "undefined" ||
+        //     typeof (sessionStorage["Document Admin"]) === "undefined" ||
+        //     typeof (sessionStorage["Task User"]) === "undefined" ||
+        //     typeof (sessionStorage["Task Admin"]) === "undefined" ||
+        //     typeof (sessionStorage["Event User"]) === "undefined" ||
+        //     typeof (sessionStorage["Event Admin"]) === "undefined") {
+        //     JCICommon.verifyCurrentUserGroup("Admin");
+        //     JCICommon.verifyCurrentUserGroup("HR Scorecard Admin");
+        //     JCICommon.verifyCurrentUserGroup("HR Scorecard User");
+        //     JCICommon.verifyCurrentUserGroup("Document User");
+        //     JCICommon.verifyCurrentUserGroup("Document Admin");
+        //     JCICommon.verifyCurrentUserGroup("Task User");
+        //     JCICommon.verifyCurrentUserGroup("Task Admin");
+        //     JCICommon.verifyCurrentUserGroup("Event User");
+        //     JCICommon.verifyCurrentUserGroup("Event Admin");
+        // }
 
-    if (typeof (sessionStorage["SPEAR Admin"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR HR Scorecard Admin"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR HR Scorecard User"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR Document User"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR Document Admin"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR Task User"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR Task Admin"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR Event User"]) === "undefined" ||
-        typeof (sessionStorage["SPEAR Event Admin"]) === "undefined") {
-        JCICommon.verifyCurrentUserGroup("SPEAR Admin");
-        JCICommon.verifyCurrentUserGroup("SPEAR HR Scorecard Admin");
-        JCICommon.verifyCurrentUserGroup("SPEAR HR Scorecard User");
-        JCICommon.verifyCurrentUserGroup("SPEAR Document User");
-        JCICommon.verifyCurrentUserGroup("SPEAR Document Admin");
-        JCICommon.verifyCurrentUserGroup("SPEAR Task User");
-        JCICommon.verifyCurrentUserGroup("SPEAR Task Admin");
-        JCICommon.verifyCurrentUserGroup("SPEAR Event User");
-        JCICommon.verifyCurrentUserGroup("SPEAR Event Admin");
-    }
+        if (sessionStorage["Admin"] != "Yes") {
+            $('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Users.aspx"]').hide();
+            $('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Admin.aspx"]').hide();
+        }
 
-    if (sessionStorage["SPEAR Admin"] != "Yes") {
-        jQuery('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Users.aspx"]').hide();
-        jQuery('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Admin.aspx"]').hide();
-    }
+        if (!(sessionStorage['Admin'] === 'Yes' ||
+            sessionStorage['HR Scorecard Admin'] === 'Yes' ||
+            sessionStorage['HR Scorecard User'] === 'Yes')) {
+            $('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/HRScorecard.aspx"]').hide();
+        }
 
-    if (!(sessionStorage['SPEAR Admin'] === 'Yes' ||
-        sessionStorage['SPEAR HR Scorecard Admin'] === 'Yes' ||
-        sessionStorage['SPEAR HR Scorecard User'] === 'Yes')) {
-        jQuery('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/HRScorecard.aspx"]').hide();
-    }
+        if (!(sessionStorage['Admin'] === 'Yes' ||
+            sessionStorage['Task User'] === 'Yes' ||
+            sessionStorage['Task Admin'] === 'Yes')) {
+            $('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/TasksPage.aspx"]').hide();
+        }
 
-    if (!(sessionStorage['SPEAR Admin'] === 'Yes' ||
-        sessionStorage['SPEAR Task User'] === 'Yes' ||
-        sessionStorage['SPEAR Task Admin'] === 'Yes')) {
-        jQuery('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/TasksPage.aspx"]').hide();
-    }
+        if (!(sessionStorage['Admin'] === 'Yes' ||
+            sessionStorage['Event User'] === 'Yes' ||
+            sessionStorage['Event Admin'] === 'Yes')) {
+            $('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Events.aspx"]').hide();
+        }
+        if (!(sessionStorage['Admin'] === 'Yes' ||
+            sessionStorage['Document User'] === 'Yes' ||
+            sessionStorage['Document Admin'] === 'Yes')) {
+            $('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Document Category.aspx"]').hide();
+        }
+        $('.menu-item-text:contains("Recycle Bin")').remove();
 
-    if (!(sessionStorage['SPEAR Admin'] === 'Yes' ||
-        sessionStorage['SPEAR Event User'] === 'Yes' ||
-        sessionStorage['SPEAR Event Admin'] === 'Yes')) {
-        jQuery('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Events.aspx"]').hide();
-    }
-    if (!(sessionStorage['SPEAR Admin'] === 'Yes' ||
-            sessionStorage['SPEAR Document User'] === 'Yes' ||
-            sessionStorage['SPEAR Document Admin'] === 'Yes')) {
-            jQuery('.ms-core-sideNavBox-removeLeftMargin').find('a[href*="/Document Category.aspx"]').hide();
-    }
-    jQuery('.menu-item-text:contains("Recycle Bin")').remove();
-    
-})
+    })
+})(jQuery);

@@ -1,5 +1,5 @@
 var CRUD = CRUD || {};
-(function () {
+(function ($) {
     // Execute function is used to call any function in CRUD. 
     // For eg. if you want to call getListAllData then you will use execute like this CRUD.execute('getListAllData','listTitle')
     CRUD.execute = function (name) {
@@ -13,7 +13,7 @@ var CRUD = CRUD || {};
         UpdateFormDigest(_spPageContextInfo.webAbsoluteUrl, _spFormDigestRefreshInterval);
 
         var showPopup = null;
-        jQuery(document).ajaxStart(function () {
+        $(document).ajaxStart(function () {
             try {
                 if (showPopup == null)
                     showPopup = SP.UI.ModalDialog.showWaitScreenWithNoClose(SP.Res.dialogLoading15);
@@ -22,7 +22,7 @@ var CRUD = CRUD || {};
             }
         });
 
-        jQuery(document).ajaxStop(function () {
+        $(document).ajaxStop(function () {
             setTimeout(function () {
                 if (showPopup != null)
                     showPopup.close();
@@ -33,7 +33,7 @@ var CRUD = CRUD || {};
     // This function is used to get list data from sharepoint without filter
     CRUD.getListAllData = function (listTitle) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')/items",
             type: "GET",
             headers: {
@@ -44,7 +44,7 @@ var CRUD = CRUD || {};
     // This function is used to get list data by item id from sharepoint without filter
     CRUD.getListDataByItemId = function (listTitle, itemId) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/Web/Lists/GetByTitle('" + listTitle + "')/getItemById('" + itemId + "')",
             type: "GET",
             headers: {
@@ -59,9 +59,9 @@ var CRUD = CRUD || {};
             async = true;
         }
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')/items",
-            data: jQuery.param(filterData),
+            data: $.param(filterData),
             type: "GET",
             async: async,
             headers: {
@@ -81,12 +81,12 @@ var CRUD = CRUD || {};
             itemData['__metadata'] = JSON.parse(metadata);
         }
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')/items",
             type: "POST",
             headers: {
                 "accept": "application/json;odata=verbose",
-                "X-RequestDigest": jQuery("#__REQUESTDIGEST").val(),
+                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
                 "content-Type": "application/json;odata=verbose"
             },
             data: JSON.stringify(itemData)
@@ -104,14 +104,14 @@ var CRUD = CRUD || {};
             itemData['__metadata'] = JSON.parse(metadata);
         }
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/Web/Lists/GetByTitle('" + listTitle + "')/getItemById('" + itemId + "')",
             type: "POST",
             data: JSON.stringify(itemData),
             contentType: "application/json;odata=verbose",
             headers: {
                 "Accept": "application/json;odata=verbose",
-                "X-RequestDigest": jQuery("#__REQUESTDIGEST").val(),
+                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
                 "X-HTTP-Method": "MERGE",
                 "If-Match": "*"
             }
@@ -120,13 +120,13 @@ var CRUD = CRUD || {};
     // This function is used to delete list item from sharepoint based on item id.
     CRUD.deleteListItem = function (listTitle, itemId) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/Web/Lists/GetByTitle('" + listTitle + "')/getItemById('" + itemId + "')",
             type: "POST",
             contentType: "application/json;odata=verbose",
             headers: {
                 "Accept": "application/json;odata=verbose",
-                "X-RequestDigest": jQuery("#__REQUESTDIGEST").val(),
+                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
                 "X-HTTP-Method": "DELETE",
                 "If-Match": "*"
             }
@@ -135,7 +135,7 @@ var CRUD = CRUD || {};
     // This function is used to interally to get the metadata if not passed while adding or updating the list item.
     CRUD.getListMetaData = function (listTitle) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')?$select=ListItemEntityTypeFullName",
             async: false,
             type: "GET",
@@ -146,7 +146,7 @@ var CRUD = CRUD || {};
     }
     // This function is used internally while uploading the attachment to sharepoint list.
     CRUD.getFileBuffer = function (file) {
-        var deferred = jQuery.Deferred();
+        var deferred = $.Deferred();
         var reader = new FileReader();
         reader.onload = function (e) {
             deferred.resolve(e.target.result);
@@ -159,7 +159,7 @@ var CRUD = CRUD || {};
     }
     // This function is used to upload the file in sharepoint list.
     CRUD.uploadFileSP = function (listName, id, fileName, file) {
-        var deferred = jQuery.Deferred();
+        var deferred = $.Deferred();
         CRUD.getFileBuffer(file).then(
             function (buffer) {
                 var bytes = new Uint8Array(buffer);
@@ -170,7 +170,7 @@ var CRUD = CRUD || {};
                 }
                 var scriptbase = _spPageContextInfo.webAbsoluteUrl + "/_layouts/15/";
 
-                jQuery.getScript(scriptbase + "SP.RequestExecutor.js", function () {
+                $.getScript(scriptbase + "SP.RequestExecutor.js", function () {
                     var createitem = new SP.RequestExecutor(_spPageContextInfo.webAbsoluteUrl);
                     createitem.executeAsync({
                         //url: _spPageContextInfo.webAbsoluteUrl + "/_api/web/GetFolderByServerRelativeUrl('"+_spPageContextInfo.webServerRelativeUrl+"/Lists/"+listName+"/Attachments/"+id+"')/Files/Add(url='" + file.name + "',overwrite=true)",
@@ -202,7 +202,7 @@ var CRUD = CRUD || {};
     // This function is used to get all the attachments in the sharepoint list.
     CRUD.getAttachmentsFromList = function (listTitle, id) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/lists/getbytitle('" + listTitle + "')/items(" + id + ")/AttachmentFiles",
             type: "GET",
             headers: {
@@ -213,12 +213,12 @@ var CRUD = CRUD || {};
     // This function is used to delete the attachments in the sharepoint list.
     CRUD.deleteAttachmentFile = function (listTitle, itemId, fileName) {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/lists/getByTitle('" + listTitle + "')/getItemById(" + itemId + ")/AttachmentFiles/getByFileName('" + fileName + "')",
             method: 'POST',
             contentType: 'application/json;odata=verbose',
             headers: {
-                'X-RequestDigest': jQuery('#__REQUESTDIGEST').val(),
+                'X-RequestDigest': $('#__REQUESTDIGEST').val(),
                 'X-HTTP-Method': 'DELETE',
                 'Accept': 'application/json;odata=verbose'
             }
@@ -258,7 +258,7 @@ var CRUD = CRUD || {};
             async = true;
         }
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/web/lists/GetByTitle('" + listTitle + "')/Fields/GetByTitle('" + fieldName + "')",
             type: "GET",
             async: async,
@@ -276,7 +276,7 @@ var CRUD = CRUD || {};
         }
         else {
             var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-            return jQuery.ajax({
+            return $.ajax({
                 url: webUrl + "/_api/web/lists/GetByTitle('" + listTitle + "')/" + formType,
                 type: "GET",
                 contentType: 'application/json;odata=verbose',
@@ -289,7 +289,7 @@ var CRUD = CRUD || {};
     // This function returns the user id.
     CRUD.getUserId = function (loginName) {
         SP.SOD.loadMultiple(['sp.js'], function () {
-            var deferred = jQuery.Deferred();
+            var deferred = $.Deferred();
             var context = new SP.ClientContext.get_current();
             var ensureUser = context.get_web().ensureUser(loginName);
             context.load(ensureUser);
@@ -364,7 +364,7 @@ var CRUD = CRUD || {};
     // This function returns Time zone of the server
     CRUD.getTimeZone = function () {
         var webUrl = _spPageContextInfo.webAbsoluteUrl || '..';
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/Web/RegionalSettings/TimeZone",
             type: "GET",
             contentType: 'application/json;odata=verbose',
@@ -379,7 +379,7 @@ var CRUD = CRUD || {};
         if (async == undefined) {
             async = true;
         }
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/SP.UserProfiles.PeopleManager/GetUserProfilePropertyFor(accountName=@v,propertyName='" + propertyName + "')?@v='i:0%23.f|membership|" + loginName + "'",
             type: "GET",
             async: async,
@@ -395,7 +395,7 @@ var CRUD = CRUD || {};
             async = true;
         }
 
-        return jQuery.ajax({
+        return $.ajax({
             url: webUrl + "/_api/SP.UserProfiles.PeopleManager/GetPropertiesFor(accountName=@v)?@v='" + encodeURIComponent(accountName) + "'",
             type: "GET",
             async: async,
@@ -476,7 +476,7 @@ var CRUD = CRUD || {};
             }
         }
         properties = '{"properties": ' + JSON.stringify(properties) + '}'
-        return jQuery.ajax({
+        return $.ajax({
             contentType: 'application/json',
             url: urlTemplate,
             type: "POST",
@@ -485,7 +485,7 @@ var CRUD = CRUD || {};
             headers: {
                 "Accept": "application/json;odata=verbose",
                 "content-type": "application/json;odata=verbose",
-                "X-RequestDigest": jQuery("#__REQUESTDIGEST").val()
+                "X-RequestDigest": $("#__REQUESTDIGEST").val()
             }
         });
     }
@@ -504,7 +504,7 @@ var CRUD = CRUD || {};
             }
         }
         var settings = $.extend({}, defaults, options);
-        return jQuery.ajax(settings);
+        return $.ajax(settings);
     }
     // Create SharePoint Dialog
     CRUD.createSPDialog = function (dlgWidth, dlgHeight, dlgAllowMaximize, dlgShowClose, pageUri, title, needCallbackFunction, callbackFunction) {
@@ -514,7 +514,7 @@ var CRUD = CRUD || {};
         }
         SP.SOD.execute('sp.ui.dialog.js', 'SP.UI.ModalDialog.showModalDialog', options);
     }
-    jQuery(document).ready(function () {
+    $(document).ready(function () {
         SP.SOD.loadMultiple(['sp.js', 'sp.ui.dialog.js'], CRUD.sharepointReady);
     });
-})();
+})(jQuery);
