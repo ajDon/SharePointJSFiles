@@ -211,12 +211,16 @@ var exportToView = (function ($) {
                 var wpq = contextObject['wpq'];
                 if (webparts.indexOf(wpq) === -1) {
                     webparts.push(wpq);
-                    var $addNewToolbar = $('#Hero-' + wpq).find('td.ms-list-addnew');
-                    if ($addNewToolbar.find('.ms-qcb-leftzone').length > 0) {
-                        $addNewToolbar.find('.ms-qcb-leftzone').append('<li class="ms-qcb-item"><button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button></li>');
-                    }
-                    else {
-                        $addNewToolbar.append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>')
+                    if ($('#Hero-' + wpq).length > 0) {
+                        var $addNewToolbar = $('#Hero-' + wpq).find('td.ms-list-addnew');
+                        if ($addNewToolbar.find('.ms-qcb-leftzone').length > 0) {
+                            $addNewToolbar.find('.ms-qcb-leftzone').append('<li class="ms-qcb-item"><button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button></li>');
+                        }
+                        else {
+                            $addNewToolbar.append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>')
+                        }
+                    } else {
+                        $('#script' + wpq).prepend('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
                     }
                 }
             }
