@@ -17,8 +17,8 @@ var exportToView = (function ($) {
         var context = SP.ClientContext.get_current();
         var listObject = context.get_web().get_lists().getByTitle(ArrayOfAllFoundVariables[indexOfArray].ListTitle);
         var views = listObject.get_views();
-        var view = views.getById(ArrayOfAllFoundVariables[indexOfArray].view.replace(/{/g, '').replace(/}/g, ''));
-        context.load(view)
+        var view = views.getById(ArrayOfAllFoundVariables[indexOfArray].view.replace(/{/g, "").replace(/}/g, ""));
+        context.load(view);
         context.executeQueryAsync(function () {
             console.info('succ');
             var query = new SP.CamlQuery();
@@ -63,7 +63,7 @@ var exportToView = (function ($) {
                             value = fieldValue.get_lookupValue();
                         }
                         else if (field.Type === "UserMulti") {
-                            if (fieldValue != null) {
+                            if (fieldValue !== null) {
                                 value = [];
                                 fieldValue.forEach(function (userValue) {
                                     value.push(userValue.get_lookupValue());
@@ -93,9 +93,7 @@ var exportToView = (function ($) {
                             value = val.toLocaleString();
                         }
                         data[displayName] = value;
-                        // data += "'" + displayName + "'" + ":'" + value + "'";
                     });
-                    // var jsonData = "{" + data + "}";
                     allData.push(data);
                 }
 
@@ -103,7 +101,6 @@ var exportToView = (function ($) {
                 var filterLink = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink;
                 var filterFields = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterFields;
                 if (filterFields != undefined) {
-                    alert('With filter');
                     filterFields = filterFields.split(';');
                     filterFields = filterFields.filter(function (x) {
                         return (x !== (undefined || null || ''));
@@ -120,7 +117,7 @@ var exportToView = (function ($) {
                             return field.InternalName === filterField;
                         });
                         if (isTaxnomyField.length > 0) {
-                            var filterValue = GetUrlKeyValue('FilterData' + (indexOfFilterFields + 1), false, _spPageContextInfo.webAbsoluteUrl + ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink);
+                            var filterValue = GetUrlKeyValue('FilterData' + (indexOfFilterFields + 1), false, _spPageContextInfo.webAbsoluteUrl + filterLink);
                             filterValue = filterValue.split(',')
                             var termGuid = filterValue[filterValue.length - 1]
                             console.info("termGuid", termGuid);
@@ -131,13 +128,13 @@ var exportToView = (function ($) {
                             filterData(filedDetail[0].DisplayName, filterValue, filedDetail[0].Type.indexOf('Multi') > -1, filedDetail[0].Type === "DateTime");
                         }
                         else {
-                            var filterValue = decodeURIComponent(GetUrlKeyValue('FilterValue' + (indexOfFilterFields + 1), true, _spPageContextInfo.webAbsoluteUrl + ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink));
+                            var filterValue = decodeURIComponent(GetUrlKeyValue('FilterValue' + (indexOfFilterFields + 1), true, _spPageContextInfo.webAbsoluteUrl + filterLink));
 
                             /**
                              * Check check for multiple value
                              */
                             if (filterValue === "") {
-                                var filterValues = decodeURIComponent(GetUrlKeyValue('FilterValues' + (indexOfFilterFields + 1), true, _spPageContextInfo.webAbsoluteUrl + ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink));
+                                var filterValues = decodeURIComponent(GetUrlKeyValue('FilterValues' + (indexOfFilterFields + 1), true, _spPageContextInfo.webAbsoluteUrl + filterLink));
                                 if (filterValues != "") {
                                     filterValues = filterValues.split(';#');
                                     console.info("Multi Value filter", filterValues);
@@ -161,18 +158,20 @@ var exportToView = (function ($) {
                     JSONToCSVConvertor(allData, true);
                 }
             }, function (sender, args) {
-                console.error('error', sender, args)
+                console.error('error', sender, args);
                 if (spDialogJSLoaded) {
                     SP.UI.ModalDialog.commonModalDialogClose(SP.UI.DialogResult.Cancel, null);
                 }
+                alert("Error occurred while exporting to excel");
             });
         }, function (sender, args) {
-            console.error('error', sender, args)
+            console.error('error', sender, args);
             if (spDialogJSLoaded) {
                 SP.UI.ModalDialog.commonModalDialogClose(SP.UI.DialogResult.Cancel, null);
             }
+            alert("Error occurred while exporting to excel");
         })
-    }
+    };
 
     var getViewFields = function (indexOfArray) {
         var allFieldsInView = [];
@@ -198,17 +197,17 @@ var exportToView = (function ($) {
         }
 
         return allFieldsInView;
-    }
+    };
 
     var getAllViewNameAndGuid = function () {
-        for (element in window) {
-            if (element.substring(0, 3) == 'ctx') {
-                ArrayOfAllFoundVariables.push(window[element]);
+        for (globalVariables in window) {
+            if (globalVariables.substring(0, 3) == 'ctx') {
+                ArrayOfAllFoundVariables.push(window[globalVariables]);
             }
         }
         var webparts = [];
         ArrayOfAllFoundVariables.forEach(function (contextObject, indexOfArray) {
-            if (contextObject != null) {
+            if (contextObject !== null) {
                 var wpq = contextObject['wpq'];
                 if (webparts.indexOf(wpq) === -1) {
                     webparts.push(wpq);
@@ -222,42 +221,43 @@ var exportToView = (function ($) {
                 }
             }
         });
-    }
+    };
 
     var JSONToCSVConvertor = function (JSONData, ShowLabel) {
 
         var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
         var CSV = '';
+        var row = "";
         if (ShowLabel) {
-            var row = "";
-            for (var index in arrData[0]) {
-                row += index + '\t';
+            row = "";
+            for (var indexOfHeader in arrData[0]) {
+                row += indexOfHeader + '\t';
             }
             row = row.slice(0, -1);
             CSV += row + '\t\n';
         }
         for (var i = 0; i < arrData.length; i++) {
-            var row = "";
-            for (var index in arrData[i]) {
-                var arrValue = arrData[i][index] == null ? "" : arrData[i][index];
+            row = "";
+            for (var indexOfData in arrData[i]) {
+                var arrValue = arrData[i][indexOfData] === null ? "" : arrData[i][indexOfData];
                 row += arrValue + '\t';
             }
             row.slice(0, row.length - 1);
             CSV += row + '\t\n';
         }
-        if (CSV == '') {
+        if (CSV === '') {
             growl.error("Invalid data");
             return;
         }
         var fileName = "Result";
         if (msieversion()) {
             var IEwindow = window.open();
-            IEwindow.document.write('sep=,\t\n' + CSV);
+            IEwindow.document.write("sep=,\t\n" + CSV);
             IEwindow.document.close();
             IEwindow.document.execCommand('SaveAs', true, fileName + ".xls");
             IEwindow.close();
         } else {
-            var uri = 'data:application/xls;charset=utf-8,' + escape(CSV);
+            var uri = "data:application/xls;charset=utf-8," + escape(CSV);
             var link = document.createElement("a");
             link.href = uri;
             link.style = "visibility:hidden";
@@ -269,52 +269,68 @@ var exportToView = (function ($) {
         if (spDialogJSLoaded) {
             SP.UI.ModalDialog.commonModalDialogClose(SP.UI.DialogResult.Cancel, null);
         }
-    }
+    };
 
     var msieversion = function () {
         var ua = window.navigator.userAgent;
         var msie = ua.indexOf("MSIE ");
-        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer, return version number 
-        {
+        // If Internet Explorer, return version number 
+        if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
             return true;
-        } else { // If another browser, 
+        }
+        // If another browser, 
+        else {
             return false;
         }
-    }
+    };
+
     var filterData = function (columnName, columnValue, multiValuedColumn, isDateColumn) {
         allData = allData.filter(function (data, index) {
             if (isDateColumn) {
                 var dateValue = new Date(columnValue);
-                return data[columnName].indexOf((dateValue.getMonth() + 1) + '/' + dateValue.getDate() + '/' + dateValue.getFullYear()) > -1;
+                return data[columnName].indexOf((dateValue.getMonth() + 1) + "/" + dateValue.getDate() + "/" + dateValue.getFullYear()) > -1;
             }
             else if (multiValuedColumn) {
                 data[columnName] = data[columnName] || "";
-                var mutiValued = data[columnName].split(';')
+                var mutiValued = data[columnName].split(";");
                 if (typeof columnValue === "object") {
-                    for (var index = 0; index < mutiValued.length; index++) {
-                        var currentValue = mutiValued[index];
+                    for (var indexOfMutiValued = 0; indexOfMutiValued < mutiValued.length; indexOfMutiValued++) {
+                        var currentValue = mutiValued[indexOfMutiValued];
                         if (columnValue.indexOf(currentValue) > -1) {
-                            return columnValue.indexOf(currentValue) > -1
+                            return columnValue.indexOf(currentValue) > -1;
                         }
                     }
                 }
                 return mutiValued.indexOf(columnValue) > -1;
             } else {
-                return data[columnName] === columnValue;
+                if (data[columnName] === null || data[columnName] === undefined) {
+                    data[columnName] = "";
+                }
+                if (typeof columnValue === "object") {
+                    for (var indexOfcolumnValue = 0; indexOfcolumnValue < columnValue.length; indexOfcolumnValue++) {
+                        var colValue = columnValue[indexOfcolumnValue];
+                        if (data[columnName] === colValue) {
+                            return data[columnName] === colValue;
+                        }
+                    }
+                } else {
+                    return data[columnName] === columnValue;
+                }
             }
-        })
-    }
+        });
+    };
 
     $(document).ready(function () {
         setTimeout(function () {
             getAllViewNameAndGuid();
         }, 2000);
-    })
+    });
 
-    SP.SOD.loadMultiple(['sp.js', 'sp.ui.dialog.js'], function () {
+    SP.SOD.loadMultiple(["sp.js", "sp.ui.dialog.js"], function () {
         spDialogJSLoaded = true;
     });
+
     return {
         exportView: exportView
-    }
+    };
 })(jQuery);
