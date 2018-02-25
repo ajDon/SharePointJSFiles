@@ -293,7 +293,7 @@ var exportToView = (function ($) {
         var fileName = "Result";
         if (msieversion()) {
             var IEwindow = window.open();
-            IEwindow.document.write("sep=,\t\n" + CSV);
+            IEwindow.document.write(CSV);
             IEwindow.document.close();
             IEwindow.document.execCommand('SaveAs', true, fileName + ".xls");
             IEwindow.close();
