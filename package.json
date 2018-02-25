@@ -1,0 +1,27 @@
+{
+  "name": "sharepointjsfiles",
+  "version": "3.0.0",
+  "description": "All this JS files is dependent on jQuery and it works only in SharePoint environment",
+  "keywords": [
+    "SharePoint 2013",
+    "SharePoint Online",
+    "SharePoint PeoplePicker",
+    "SharePoint CRUD Operation",
+    "SharePoint Export to excel from view"
+  ],
+  "dependencies": {
+    "jquery-1x": ">1. <2",
+    "sp.js": "SharePoint 2013",
+    "sp.ui.dialog.js": "SharePoint 2013"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajDon/SharePointJSFiles.git"
+  },
+  "author": "Ajay Sahu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ajDon/SharePointJSFiles/issues"
+  },
+  "homepage": "https://github.com/ajDon/SharePointJSFiles#readme"
+}
