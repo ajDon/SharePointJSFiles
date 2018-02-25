@@ -1,4 +1,13 @@
+/**
+ * @namespace exportToView 
+ * @description Export To view will export view to XLS format with view filter and column filter
+ * @scope Revealing Module Pattern
+ * @requires jQuery
+ * @param {Object} jQuery
+ * @returns {function} exportView
+ */
 var exportToView = (function ($) {
+    //#region Private Variables
     var items;
     var allFieldsInView = [];
     var allData = [];
@@ -6,7 +15,15 @@ var exportToView = (function ($) {
     var termLabelAndGuid = {};
     var taxonomyField = [];
     var spDialogJSLoaded = false;
+    //#endregion
 
+    //#region Private functions
+
+    /**
+     * @name exportView
+     * @description Loads data from view and converts it to xls format.
+     * @param {Number} indexOfArray 
+     */
     var exportView = function (indexOfArray) {
         if (spDialogJSLoaded) {
             SP.UI.ModalDialog.showWaitScreenWithNoClose(SP.Res.dialogLoading15);
@@ -173,6 +190,12 @@ var exportToView = (function ($) {
         })
     };
 
+    /**
+     * @name getViewFields
+     * @description get view fields from the array.
+     * @param {Number} indexOfArray
+     * @returns {Object} allFieldsInView
+     */
     var getViewFields = function (indexOfArray) {
         var allFieldsInView = [];
         taxonomyField = [];
@@ -199,6 +222,10 @@ var exportToView = (function ($) {
         return allFieldsInView;
     };
 
+    /**
+     * @name getAllViewNameAndGuid
+     * @description get all context object from the page and adds export button to the view dynamically
+     */
     var getAllViewNameAndGuid = function () {
         for (globalVariables in window) {
             if (globalVariables.substring(0, 3) == 'ctx') {
@@ -217,9 +244,13 @@ var exportToView = (function ($) {
                             $addNewToolbar.find('.ms-qcb-leftzone').append('<li class="ms-qcb-item"><button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button></li>');
                         }
                         else {
-                            $addNewToolbar.append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>')
+                            $addNewToolbar.append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
                         }
-                    } else {
+                    }
+                    else if ($('#script'+wpq).find('.ms-csrlistview-controldiv').length > 0) {
+                        $('#script'+wpq).find('.ms-csrlistview-controldiv').append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
+                    } 
+                    else {
                         $('#script' + wpq).prepend('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
                     }
                 }
@@ -227,6 +258,12 @@ var exportToView = (function ($) {
         });
     };
 
+    /**
+     * @name JSONToCSVConvertor
+     * @description Converts JSON to xls format and header if showlabel is true
+     * @param {Object} JSONData 
+     * @param {Boolean} ShowLabel 
+     */
     var JSONToCSVConvertor = function (JSONData, ShowLabel) {
 
         var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
@@ -275,6 +312,11 @@ var exportToView = (function ($) {
         }
     };
 
+    /**
+     * @name msieversion
+     * @description Check browser is IE or not
+     * @returns {Boolean} true or false
+     */
     var msieversion = function () {
         var ua = window.navigator.userAgent;
         var msie = ua.indexOf("MSIE ");
@@ -288,6 +330,14 @@ var exportToView = (function ($) {
         }
     };
 
+    /**
+     * @name filterData
+     * @description Filters data based on the parameters passed to it
+     * @param {String} columnName 
+     * @param {Any} columnValue 
+     * @param {Boolean} multiValuedColumn 
+     * @param {Boolean} isDateColumn 
+     */
     var filterData = function (columnName, columnValue, multiValuedColumn, isDateColumn) {
         allData = allData.filter(function (data, index) {
             if (isDateColumn) {
@@ -324,17 +374,30 @@ var exportToView = (function ($) {
         });
     };
 
+    //#endregion
+
+    /**
+     * Document ready function
+     */
     $(document).ready(function () {
         setTimeout(function () {
             getAllViewNameAndGuid();
         }, 2000);
     });
 
+    /**
+     * Load sp.js and sp.ui.dialog.js for showing overlay on click
+     */
     SP.SOD.loadMultiple(["sp.js", "sp.ui.dialog.js"], function () {
         spDialogJSLoaded = true;
     });
 
     return {
+        /**
+         * @name exportView
+         * @description Loads data from view and converts it to xls format.
+         * @param {Number} indexOfArray 
+         */
         exportView: exportView
     };
 })(jQuery);
