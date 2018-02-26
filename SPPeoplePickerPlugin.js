@@ -157,6 +157,25 @@
             });
         }
     }
+    // On User Resolved Event For People Picker
+    function OnUserResolvedEvent(eleId, callback) {
+        var toSpanKey = eleId + "_TopSpan";
+        var peoplePicker = null;
+
+        // Get the people picker object from the page.
+        //var peoplePicker = this.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
+        var ClientPickerDict = this.SPClientPeoplePicker.SPClientPeoplePickerDict;
+        // Get the people picker object from the page.
+        for (var propertyName in ClientPickerDict) {
+            if (propertyName == toSpanKey) {
+                peoplePicker = ClientPickerDict[propertyName];
+                break;
+            }
+        }
+        if (peoplePicker != null) {
+            peoplePicker.OnUserResolvedClientScript = callback;
+        }
+    }
     // this will use as plugin 
     // to use this plugin you need to have div and use it as below
     /*
@@ -208,5 +227,10 @@
         $('div [id*="' + eleId + '"]').each(function () {
             $(this).removeClass('disablePeoplePicker');
         });
+    }
+
+    $.fn.OnUserResolvedEvent = function (callback) {
+        var eleId = $(this).attr('id');
+        OnUserResolvedEvent(eleId, callback);
     }
 })(jQuery);
