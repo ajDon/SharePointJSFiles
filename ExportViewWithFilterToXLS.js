@@ -48,68 +48,79 @@ var exportToView = (function ($) {
                     var currentItem = itemEnum.get_current();
                     var data = {};
                     allFieldsInView.forEach(function (field) {
-                        var fieldValue = currentItem.get_item(field.Name);
-                        var value = fieldValue;
-                        var displayName = field.DisplayName;
-                        if (field.Type === "TaxonomyFieldType") {
-                            value = fieldValue.get_label();
-                            var termGuid = fieldValue.get_termGuid();
-                            if (termLabelAndGuid[termGuid] === undefined) {
-                                termLabelAndGuid[termGuid] = {};
-                                termLabelAndGuid[termGuid]['Label'] = value;
-                                termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
-                            }
-                        }
-                        else if (field.Type === "TaxonomyFieldTypeMulti") {
-                            var taxMultiValue = fieldValue.getEnumerator();
-                            value = [];
-                            while (taxMultiValue.moveNext()) {
-                                var currentTaxValue = taxMultiValue.get_current();
-                                var currentTaxValueLabel = currentTaxValue.get_label();
-                                value.push(currentTaxValueLabel);
-                                var termGuid = currentTaxValue.get_termGuid();
+                        if (field.Name !== "Edit") {
+                            var fieldValue = currentItem.get_item(field.Name);
+                            var value = fieldValue;
+                            var displayName = field.DisplayName;
+                            if (field.Type === "TaxonomyFieldType") {
+                                value = fieldValue.get_label();
+                                var termGuid = fieldValue.get_termGuid();
                                 if (termLabelAndGuid[termGuid] === undefined) {
                                     termLabelAndGuid[termGuid] = {};
-                                    termLabelAndGuid[termGuid]['Label'] = currentTaxValueLabel;
+                                    termLabelAndGuid[termGuid]['Label'] = value;
                                     termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
                                 }
                             }
-                            value = value.join(';');
-                        }
-                        else if (field.Type === "User") {
-                            value = fieldValue.get_lookupValue();
-                        }
-                        else if (field.Type === "UserMulti") {
-                            if (fieldValue !== null) {
+                            else if (field.Type === "TaxonomyFieldTypeMulti") {
+                                var taxMultiValue = fieldValue.getEnumerator();
                                 value = [];
-                                fieldValue.forEach(function (userValue) {
-                                    value.push(userValue.get_lookupValue());
-                                });
+                                while (taxMultiValue.moveNext()) {
+                                    var currentTaxValue = taxMultiValue.get_current();
+                                    var currentTaxValueLabel = currentTaxValue.get_label();
+                                    value.push(currentTaxValueLabel);
+                                    var termGuid = currentTaxValue.get_termGuid();
+                                    if (termLabelAndGuid[termGuid] === undefined) {
+                                        termLabelAndGuid[termGuid] = {};
+                                        termLabelAndGuid[termGuid]['Label'] = currentTaxValueLabel;
+                                        termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
+                                    }
+                                }
                                 value = value.join(';');
-                            } else {
-                                value = "";
                             }
-                        }
-                        else if (field.Type === "Lookup") {
-                            value = fieldValue.get_lookupValue();
-                        }
-                        else if (field.Type === "LookupMulti") {
-                            if (fieldValue.length > 0) {
-                                value = [];
-                                fieldValue.forEach(function (lookupValue) {
-                                    value.push(lookupValue.get_lookupValue());
-                                });
-                                value = value.join(';');
-                            } else {
-                                value = "";
+                            else if (field.Type === "User") {
+                                value = fieldValue != null ? fieldValue.get_lookupValue() : "";
                             }
+                            else if (field.Type === "UserMulti") {
+                                if (fieldValue !== null) {
+                                    value = [];
+                                    fieldValue.forEach(function (userValue) {
+                                        value.push(userValue.get_lookupValue());
+                                    });
+                                    value = value.join(';');
+                                } else {
+                                    value = "";
+                                }
+                            }
+                            else if (field.Type === "Lookup") {
+                                value = fieldValue != null ? fieldValue.get_lookupValue() : "";
+                            }
+                            else if (field.Type === "LookupMulti") {
+                                if (fieldValue.length > 0) {
+                                    value = [];
+                                    fieldValue.forEach(function (lookupValue) {
+                                        value.push(lookupValue.get_lookupValue());
+                                    });
+                                    value = value.join(';');
+                                } else {
+                                    value = "";
+                                }
 
+                            }
+                            else if (field.Type === "DateTime") {
+                                if (fieldValue != "" && fieldValue != null) {
+                                    var val = new Date(fieldValue);
+                                    value = val.toLocaleString();
+                                }
+                            }
+                            else if (field.Type === "Note") {
+                                value = $(fieldValue).text()
+                            }
+                            data[displayName] = value;
                         }
-                        else if (field.Type === "DateTime") {
-                            var val = new Date(fieldValue);
-                            value = val.toLocaleString();
+                        else {
+                            data[field.DisplayName] = "";
                         }
-                        data[displayName] = value;
+
                     });
                     allData.push(data);
                 }
@@ -169,10 +180,10 @@ var exportToView = (function ($) {
                         }
                     }
                     console.info('After Filter', allData);
-                    JSONToCSVConvertor(allData, true);
+                    JSONToCSVConvertor(allData, true, ArrayOfAllFoundVariables[indexOfArray].ListTitle);
                 }
                 else {
-                    JSONToCSVConvertor(allData, true);
+                    JSONToCSVConvertor(allData, true, ArrayOfAllFoundVariables[indexOfArray].ListTitle);
                 }
             }, function (sender, args) {
                 console.error('error', sender, args);
@@ -247,9 +258,9 @@ var exportToView = (function ($) {
                             $addNewToolbar.append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
                         }
                     }
-                    else if ($('#script'+wpq).find('.ms-csrlistview-controldiv').length > 0) {
-                        $('#script'+wpq).find('.ms-csrlistview-controldiv').append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
-                    } 
+                    else if ($('#script' + wpq).find('.ms-csrlistview-controldiv').length > 0) {
+                        $('#script' + wpq).find('.ms-csrlistview-controldiv').append('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
+                    }
                     else {
                         $('#script' + wpq).prepend('<button type="button" id="btnExport' + indexOfArray + '" onclick="exportToView.exportView(' + indexOfArray + ')">Export</button>');
                     }
@@ -264,7 +275,7 @@ var exportToView = (function ($) {
      * @param {Object} JSONData 
      * @param {Boolean} ShowLabel 
      */
-    var JSONToCSVConvertor = function (JSONData, ShowLabel) {
+    var JSONToCSVConvertor = function (JSONData, ShowLabel, listName) {
 
         var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
         var CSV = '';
@@ -290,7 +301,7 @@ var exportToView = (function ($) {
             growl.error("Invalid data");
             return;
         }
-        var fileName = "Result";
+        var fileName = listName || "Result";
         if (msieversion()) {
             var IEwindow = window.open();
             IEwindow.document.write(CSV);
