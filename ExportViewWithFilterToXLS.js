@@ -14,11 +14,130 @@ var exportToView = (function ($) {
     var ArrayOfAllFoundVariables = [];
     var termLabelAndGuid = {};
     var taxonomyField = [];
+    var tempData = [];
     var spDialogJSLoaded = false;
     //#endregion
 
     //#region Private functions
+    var getItemsFromEnumerator = function (itemEnum, resultArray, lastItemId) {
+        while (itemEnum.moveNext()) {
+            var currentItem = itemEnum.get_current();
+            lastItemId = currentItem.get_id();
+            var data = {};
+            allFieldsInView.forEach(function (field) {
+                if (field.Name !== "Edit") {
+                    var fieldValue = currentItem.get_item(field.Name);
+                    var value = fieldValue;
+                    var displayName = field.DisplayName;
+                    if (field.Type === "TaxonomyFieldType") {
+                        value = fieldValue.get_label();
+                        var termGuid = fieldValue.get_termGuid();
+                        if (termLabelAndGuid[termGuid] === undefined) {
+                            termLabelAndGuid[termGuid] = {};
+                            termLabelAndGuid[termGuid]['Label'] = value;
+                            termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
+                        }
+                    }
+                    else if (field.Type === "TaxonomyFieldTypeMulti") {
+                        var taxMultiValue = fieldValue.getEnumerator();
+                        value = [];
+                        while (taxMultiValue.moveNext()) {
+                            var currentTaxValue = taxMultiValue.get_current();
+                            var currentTaxValueLabel = currentTaxValue.get_label();
+                            value.push(currentTaxValueLabel);
+                            var termGuid = currentTaxValue.get_termGuid();
+                            if (termLabelAndGuid[termGuid] === undefined) {
+                                termLabelAndGuid[termGuid] = {};
+                                termLabelAndGuid[termGuid]['Label'] = currentTaxValueLabel;
+                                termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
+                            }
+                        }
+                        value = value.join(';');
+                    }
+                    else if (field.Type === "User") {
+                        value = fieldValue != null ? fieldValue.get_lookupValue() : "";
+                    }
+                    else if (field.Type === "UserMulti") {
+                        if (fieldValue !== null) {
+                            value = [];
+                            fieldValue.forEach(function (userValue) {
+                                value.push(userValue.get_lookupValue());
+                            });
+                            value = value.join(';');
+                        } else {
+                            value = "";
+                        }
+                    }
+                    else if (field.Type === "Lookup") {
+                        value = fieldValue != null ? fieldValue.get_lookupValue() : "";
+                    }
+                    else if (field.Type === "LookupMulti") {
+                        if (fieldValue.length > 0) {
+                            value = [];
+                            fieldValue.forEach(function (lookupValue) {
+                                value.push(lookupValue.get_lookupValue());
+                            });
+                            value = value.join(';');
+                        } else {
+                            value = "";
+                        }
 
+                    }
+                    else if (field.Type === "DateTime") {
+                        if (fieldValue != "" && fieldValue != null) {
+                            var val = new Date(fieldValue);
+                            value = val.toLocaleString();
+                        }
+                    }
+                    else if (field.Type === "Note") {
+                        value = $(fieldValue).text()
+                    }
+                    data[displayName] = value;
+                }
+                else {
+                    data[field.DisplayName] = "";
+                }
+            });
+            resultArray.push(data);
+        }
+        return lastItemId;
+    }
+    var loadItems = function (listObject, orderbyQuery, camlQuery, rowlimit, oldQuery, deferred) {
+        var deferred = deferred || $.Deferred();
+        var context = SP.ClientContext.get_current();
+        var query = new SP.CamlQuery();
+        query.set_viewXml("<View Scope='RecursiveAll'><Query>" + camlQuery + "</Query> <RowLimit>" + rowlimit + "</RowLimit> </View>");
+        items = listObject.getItems(query);
+        context.load(items);
+        context.executeQueryAsync(function () {
+            var itemEnum = items.getEnumerator();
+            var numberOfItems = items.get_count();
+            if (numberOfItems == rowlimit) {
+                var lastItemId;
+                lastItemId = getItemsFromEnumerator(itemEnum, allData, lastItemId);
+                oldQuery = oldQuery || camlQuery;
+                if (oldQuery !== "") {
+                    var xmlDoc = $.parseXML(oldQuery);
+                    $(xmlDoc).find('Where').html('<And>' + $(xmlDoc).find('Where').html() + '<Gt><FieldRef Name="ID"/><Value Type="Number">' + lastItemId
+                        + '</Value></Gt></And>');
+                    camlQuery = '<Where>' + $(xmlDoc).find('Where').html() + '</Where>';
+                }
+                else {
+                    camlQuery = '<Where><Gt><FieldRef Name="ID"/><Value Type="Number">' + lastItemId + '</Value></Gt></Where>';
+                }
+
+                loadItems(listObject, orderbyQuery, camlQuery, rowlimit, oldQuery, deferred);
+            }
+            else {
+                var lastItemId;
+                getItemsFromEnumerator(itemEnum, allData, lastItemId);
+                deferred.resolve(allData);
+            }
+        }, function (sender, args) {
+            deferred.reject(sender, args);
+        })
+        return deferred.promise();
+    }
     /**
      * @name exportView
      * @description Loads data from view and converts it to xls format.
@@ -38,94 +157,70 @@ var exportToView = (function ($) {
         context.load(view);
         context.executeQueryAsync(function () {
             console.info('succ');
-            var query = new SP.CamlQuery();
-            query.set_viewXml("<View><Query>" + view.get_viewQuery() + "</Query></View>");
-            items = listObject.getItems(query);
-            context.load(items);
-            context.executeQueryAsync(function () {
-                var itemEnum = items.getEnumerator();
-                while (itemEnum.moveNext()) {
-                    var currentItem = itemEnum.get_current();
-                    var data = {};
-                    allFieldsInView.forEach(function (field) {
-                        if (field.Name !== "Edit") {
-                            var fieldValue = currentItem.get_item(field.Name);
-                            var value = fieldValue;
-                            var displayName = field.DisplayName;
-                            if (field.Type === "TaxonomyFieldType") {
-                                value = fieldValue.get_label();
-                                var termGuid = fieldValue.get_termGuid();
-                                if (termLabelAndGuid[termGuid] === undefined) {
-                                    termLabelAndGuid[termGuid] = {};
-                                    termLabelAndGuid[termGuid]['Label'] = value;
-                                    termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
+            var cmlQuery = view.get_viewQuery();
+            var defaultOrderBy = cmlQuery;
+            if (cmlQuery.indexOf('<Where>') > -1) {
+                defaultOrderBy = cmlQuery.substr(0, cmlQuery.indexOf('<Where>'));
+            }
+
+            var defaultOrderByCol = "";
+            var defaultOrderByAscending = 'true';
+            if (defaultOrderBy != "") {
+                var $defaultOrderBy = $.parseXML(defaultOrderBy);
+                defaultOrderByCol = $($defaultOrderBy).find('OrderBy').find('FieldRef ').attr('Name');
+                defaultOrderByAscending = $($defaultOrderBy).find('OrderBy').find('FieldRef ').attr('Ascending');
+                if (defaultOrderByAscending === undefined) {
+                    defaultOrderByAscending = 'true';
+                }
+                defaultOrderByAscending = defaultOrderByAscending.toLowerCase()
+            }
+            //Removing Order By from the query.
+            cmlQuery = cmlQuery.substr(cmlQuery.indexOf('</OrderBy>') + '</OrderBy>'.length, cmlQuery.length - cmlQuery.indexOf('</OrderBy>'));
+            var orderByQuery = '<OrderBy><FieldRef Name="ID" /></OrderBy>';
+            loadItems(listObject, orderByQuery, cmlQuery, 1000).then(function (data) {
+                console.info('All data from view', allData);
+                if (defaultOrderByCol != "") {
+                    var orderByField = allFieldsInView.filter(function (field, index) {
+                        if (field.Name == defaultOrderByCol) {
+                            return field;
+                        }
+                    });
+                    if (orderByField.length > 0) {
+                        var orderByFieldDisplayName = orderByField[0].DisplayName;
+                        if (defaultOrderByAscending == 'true') {
+                            allData = allData.sort(function (object1, object2) {
+
+                                var x = object1[orderByFieldDisplayName];
+                                var y = object2[orderByFieldDisplayName];
+
+                                if (typeof x == "string") {
+                                    x = ("" + x).toLowerCase();
                                 }
-                            }
-                            else if (field.Type === "TaxonomyFieldTypeMulti") {
-                                var taxMultiValue = fieldValue.getEnumerator();
-                                value = [];
-                                while (taxMultiValue.moveNext()) {
-                                    var currentTaxValue = taxMultiValue.get_current();
-                                    var currentTaxValueLabel = currentTaxValue.get_label();
-                                    value.push(currentTaxValueLabel);
-                                    var termGuid = currentTaxValue.get_termGuid();
-                                    if (termLabelAndGuid[termGuid] === undefined) {
-                                        termLabelAndGuid[termGuid] = {};
-                                        termLabelAndGuid[termGuid]['Label'] = currentTaxValueLabel;
-                                        termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
-                                    }
-                                }
-                                value = value.join(';');
-                            }
-                            else if (field.Type === "User") {
-                                value = fieldValue != null ? fieldValue.get_lookupValue() : "";
-                            }
-                            else if (field.Type === "UserMulti") {
-                                if (fieldValue !== null) {
-                                    value = [];
-                                    fieldValue.forEach(function (userValue) {
-                                        value.push(userValue.get_lookupValue());
-                                    });
-                                    value = value.join(';');
-                                } else {
-                                    value = "";
-                                }
-                            }
-                            else if (field.Type === "Lookup") {
-                                value = fieldValue != null ? fieldValue.get_lookupValue() : "";
-                            }
-                            else if (field.Type === "LookupMulti") {
-                                if (fieldValue.length > 0) {
-                                    value = [];
-                                    fieldValue.forEach(function (lookupValue) {
-                                        value.push(lookupValue.get_lookupValue());
-                                    });
-                                    value = value.join(';');
-                                } else {
-                                    value = "";
+                                if (typeof y == "string") {
+                                    y = ("" + y).toLowerCase();
                                 }
 
-                            }
-                            else if (field.Type === "DateTime") {
-                                if (fieldValue != "" && fieldValue != null) {
-                                    var val = new Date(fieldValue);
-                                    value = val.toLocaleString();
-                                }
-                            }
-                            else if (field.Type === "Note") {
-                                value = $(fieldValue).text()
-                            }
-                            data[displayName] = value;
+                                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                            })
                         }
                         else {
-                            data[field.DisplayName] = "";
+                            allData = allData.sort(function (object1, object2) {
+
+                                var x = object1[orderByFieldDisplayName];
+                                var y = object2[orderByFieldDisplayName];
+
+                                if (typeof x == "string") {
+                                    x = ("" + x).toLowerCase();
+                                }
+                                if (typeof y == "string") {
+                                    y = ("" + y).toLowerCase();
+                                }
+
+                                return ((y < x) ? -1 : ((y > x) ? 1 : 0));
+                            })
                         }
-
-                    });
-                    allData.push(data);
+                    }
                 }
-
-                console.info('All data from view', allData);
                 var filterLink = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink;
                 var filterFields = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterFields;
                 if (filterFields != undefined) {
