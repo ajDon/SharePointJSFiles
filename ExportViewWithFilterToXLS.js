@@ -220,6 +220,12 @@ var exportToView = (function ($) {
                             })
                         }
                     }
+                    else {
+                        allData = allData.reverse();
+                    }
+                }
+                else{
+                    allData = allData.reverse();
                 }
                 var filterLink = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink;
                 var filterFields = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterFields;
