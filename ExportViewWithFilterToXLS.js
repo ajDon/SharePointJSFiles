@@ -86,7 +86,7 @@ var exportToView = (function ($) {
                     else if (field.Type === "DateTime") {
                         if (fieldValue != "" && fieldValue != null) {
                             var val = new Date(fieldValue);
-                            value = val.toLocaleString();
+                            value = val.format('dd-MMM-yyyy');
                         }
                     }
                     else if (field.Type === "Note") {
@@ -224,7 +224,7 @@ var exportToView = (function ($) {
                         allData = allData.reverse();
                     }
                 }
-                else{
+                else {
                     allData = allData.reverse();
                 }
                 var filterLink = ArrayOfAllFoundVariables[indexOfArray].ListData.FilterLink;
@@ -404,11 +404,17 @@ var exportToView = (function ($) {
         }
         var fileName = listName || "Result";
         if (msieversion()) {
-            var IEwindow = window.open();
-            IEwindow.document.write(CSV);
-            IEwindow.document.close();
-            IEwindow.document.execCommand('SaveAs', true, fileName + ".xls");
-            IEwindow.close();
+            if (window.navigator.msSaveOrOpenBlob) {
+                var fileData = [CSV];
+                var blobObject = new Blob(fileData);
+                window.navigator.msSaveOrOpenBlob(blobObject, fileName + ".xls");
+            } else {
+                var IEwindow = window.open();
+                IEwindow.document.write(CSV);
+                IEwindow.document.close();
+                IEwindow.document.execCommand('SaveAs', true, fileName + ".xls");
+                IEwindow.close();
+            }
         } else {
             var uri = "data:application/xls;charset=utf-8," + escape(CSV);
             var link = document.createElement("a");
