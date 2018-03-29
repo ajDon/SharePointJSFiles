@@ -89,7 +89,7 @@ var exportToView = (function ($) {
                     }
                 }
                 else if (field.Type === "Note") {
-                    if (fieldValue != null) {
+                    if (fieldValue != null && fieldValue != undefined) {
                         fieldValue = '<div>' + fieldValue + '</div>';
                         value = $(fieldValue).text()
                     }
