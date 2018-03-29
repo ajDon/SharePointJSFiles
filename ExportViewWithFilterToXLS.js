@@ -25,78 +25,80 @@ var exportToView = (function ($) {
             lastItemId = currentItem.get_id();
             var data = {};
             allFieldsInView.forEach(function (field) {
-                if (field.Name !== "Edit") {
-                    var fieldValue = currentItem.get_item(field.Name);
-                    var value = fieldValue;
-                    var displayName = field.DisplayName;
-                    if (field.Type === "TaxonomyFieldType") {
-                        value = fieldValue.get_label();
-                        var termGuid = fieldValue.get_termGuid();
+                var fieldValue = currentItem.get_item(field.Name);
+                var value = fieldValue;
+                var displayName = field.DisplayName;
+                if (field.Type === "TaxonomyFieldType") {
+                    value = fieldValue.get_label();
+                    var termGuid = fieldValue.get_termGuid();
+                    if (termLabelAndGuid[termGuid] === undefined) {
+                        termLabelAndGuid[termGuid] = {};
+                        termLabelAndGuid[termGuid]['Label'] = value;
+                        termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
+                    }
+                }
+                else if (field.Type === "TaxonomyFieldTypeMulti") {
+                    var taxMultiValue = fieldValue.getEnumerator();
+                    value = [];
+                    while (taxMultiValue.moveNext()) {
+                        var currentTaxValue = taxMultiValue.get_current();
+                        var currentTaxValueLabel = currentTaxValue.get_label();
+                        value.push(currentTaxValueLabel);
+                        var termGuid = currentTaxValue.get_termGuid();
                         if (termLabelAndGuid[termGuid] === undefined) {
                             termLabelAndGuid[termGuid] = {};
-                            termLabelAndGuid[termGuid]['Label'] = value;
+                            termLabelAndGuid[termGuid]['Label'] = currentTaxValueLabel;
                             termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
                         }
                     }
-                    else if (field.Type === "TaxonomyFieldTypeMulti") {
-                        var taxMultiValue = fieldValue.getEnumerator();
+                    value = value.join(';');
+                }
+                else if (field.Type === "User") {
+                    value = fieldValue != null ? fieldValue.get_lookupValue() : "";
+                }
+                else if (field.Type === "UserMulti") {
+                    if (fieldValue !== null) {
                         value = [];
-                        while (taxMultiValue.moveNext()) {
-                            var currentTaxValue = taxMultiValue.get_current();
-                            var currentTaxValueLabel = currentTaxValue.get_label();
-                            value.push(currentTaxValueLabel);
-                            var termGuid = currentTaxValue.get_termGuid();
-                            if (termLabelAndGuid[termGuid] === undefined) {
-                                termLabelAndGuid[termGuid] = {};
-                                termLabelAndGuid[termGuid]['Label'] = currentTaxValueLabel;
-                                termLabelAndGuid[termGuid]['TermGuid'] = termGuid;
-                            }
-                        }
+                        fieldValue.forEach(function (userValue) {
+                            value.push(userValue.get_lookupValue());
+                        });
                         value = value.join(';');
+                    } else {
+                        value = "";
                     }
-                    else if (field.Type === "User") {
-                        value = fieldValue != null ? fieldValue.get_lookupValue() : "";
+                }
+                else if (field.Type === "Lookup") {
+                    value = fieldValue != null ? fieldValue.get_lookupValue() : "";
+                }
+                else if (field.Type === "LookupMulti") {
+                    if (fieldValue.length > 0) {
+                        value = [];
+                        fieldValue.forEach(function (lookupValue) {
+                            value.push(lookupValue.get_lookupValue());
+                        });
+                        value = value.join(';');
+                    } else {
+                        value = "";
                     }
-                    else if (field.Type === "UserMulti") {
-                        if (fieldValue !== null) {
-                            value = [];
-                            fieldValue.forEach(function (userValue) {
-                                value.push(userValue.get_lookupValue());
-                            });
-                            value = value.join(';');
-                        } else {
-                            value = "";
-                        }
-                    }
-                    else if (field.Type === "Lookup") {
-                        value = fieldValue != null ? fieldValue.get_lookupValue() : "";
-                    }
-                    else if (field.Type === "LookupMulti") {
-                        if (fieldValue.length > 0) {
-                            value = [];
-                            fieldValue.forEach(function (lookupValue) {
-                                value.push(lookupValue.get_lookupValue());
-                            });
-                            value = value.join(';');
-                        } else {
-                            value = "";
-                        }
 
+                }
+                else if (field.Type === "DateTime") {
+                    if (fieldValue != "" && fieldValue != null) {
+                        var val = new Date(fieldValue);
+                        value = val.format('dd-MMM-yyyy');
                     }
-                    else if (field.Type === "DateTime") {
-                        if (fieldValue != "" && fieldValue != null) {
-                            var val = new Date(fieldValue);
-                            value = val.format('dd-MMM-yyyy');
-                        }
-                    }
-                    else if (field.Type === "Note") {
+                }
+                else if (field.Type === "Note") {
+                    if (fieldValue != null) {
+                        fieldValue = '<div>' + fieldValue + '</div>';
                         value = $(fieldValue).text()
                     }
-                    data[displayName] = value;
                 }
-                else {
-                    data[field.DisplayName] = "";
+                if (value === null) {
+                    value = '';
                 }
+                data[displayName] = value;
+
             });
             resultArray.push(data);
         }
@@ -314,20 +316,29 @@ var exportToView = (function ($) {
         var viewFields = ArrayOfAllFoundVariables[indexOfArray].ListSchema.Field;
         for (var index = 0; index < viewFields.length; index++) {
             var Field = viewFields[index];
-            if (Field.FieldType === "TaxonomyFieldType" || Field.FieldType === "TaxonomyFieldTypeMulti") {
-                taxonomyField.push({
-                    'Name': Field.RealFieldName,
-                    'DisplayName': Field.DisplayName,
-                    'InternalName': Field.Name
-                })
-            }
-            if (Field.RealFieldName != "DocIcon") {
-                allFieldsInView.push({
-                    'DisplayName': Field.DisplayName,
-                    'Name': Field.RealFieldName,
-                    'Type': Field.FieldType,
-                    'InternalName': Field.Name
-                })
+            if (Field.Name !== "Edit"
+                && Field.Name != "_IsRecord"
+                && Field.Name != "FolderChildCount"
+                && Field.Name != "ItemChildCount"
+                && Field.Name != "_ComplianceFlags"
+                && Field.Name != "_UIVersionString"
+                && Field.Name != "ContentType"
+                && Field.Name != "AverageRating") {
+                if (Field.FieldType === "TaxonomyFieldType" || Field.FieldType === "TaxonomyFieldTypeMulti") {
+                    taxonomyField.push({
+                        'Name': Field.RealFieldName,
+                        'DisplayName': Field.DisplayName,
+                        'InternalName': Field.Name
+                    })
+                }
+                if (Field.RealFieldName != "DocIcon") {
+                    allFieldsInView.push({
+                        'DisplayName': Field.DisplayName,
+                        'Name': Field.RealFieldName,
+                        'Type': Field.FieldType,
+                        'InternalName': Field.Name
+                    })
+                }
             }
         }
 
