@@ -37,7 +37,7 @@
         $('head').append(style);
     }
     // Render and initialize the client-side People Picker.
-    function initializePeoplePicker(eleId, AllowMultipleValues, Width, accountType) {
+    function initializePeoplePicker(eleId, AllowMultipleValues, Width, accountType, callback) {
         // Create a schema to store picker properties, and set the properties.
         var schema = {};
         if (accountType === undefined) {
@@ -65,6 +65,9 @@
         // PickerEntity objects to set the picker value, and a schema that defines
         // picker properties.
         this.SPClientPeoplePicker_InitStandaloneControlWrapper(eleId, null, schema);
+        setTimeout(function(){
+            callback();
+        },500);
     }
     // Get info from the People picker
     function GetPeoplePickerValues(eleId) {
@@ -184,9 +187,9 @@
         this will work if js file on top of this file will load and work
     */
 
-    $.fn.spPeoplePicker = function (AllowMultipleValues, Width, accountType) {
+    $.fn.spPeoplePicker = function (AllowMultipleValues, Width, accountType, callback) {
         var eleId = $(this).attr('id');
-        ExecuteOrDelayUntilScriptLoaded(function () { initializePeoplePicker(eleId, AllowMultipleValues, Width, accountType); }, 'sp.core.js');
+        ExecuteOrDelayUntilScriptLoaded(function () { initializePeoplePicker(eleId, AllowMultipleValues, Width, accountType, callback); }, 'sp.core.js');
     };
 
     // Query the picker for user information.
