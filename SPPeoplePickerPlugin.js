@@ -64,7 +64,7 @@
         // Pass the ID of the DOM element that contains the picker, an array of initial
         // PickerEntity objects to set the picker value, and a schema that defines
         // picker properties.
-        this.SPClientPeoplePicker_InitStandaloneControlWrapper(eleId, null, schema);
+        window.SPClientPeoplePicker_InitStandaloneControlWrapper(eleId, null, schema);
         setTimeout(function(){
             callback();
         },500);
@@ -75,8 +75,8 @@
         var peoplePicker = null;
 
         // Get the people picker object from the page.
-        //var peoplePicker = this.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
-        var ClientPickerDict = this.SPClientPeoplePicker.SPClientPeoplePickerDict;
+        //var peoplePicker = window.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
+        var ClientPickerDict = window.SPClientPeoplePicker.SPClientPeoplePickerDict;
         // Get the people picker object from the page.
         for (var propertyName in ClientPickerDict) {
             if (propertyName == toSpanKey) {
@@ -103,8 +103,8 @@
         var peoplePicker = null;
 
         // Get the people picker object from the page.
-        //var peoplePicker = this.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
-        var ClientPickerDict = this.SPClientPeoplePicker.SPClientPeoplePickerDict;
+        //var peoplePicker = window.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
+        var ClientPickerDict = window.SPClientPeoplePicker.SPClientPeoplePickerDict;
         // Get the people picker object from the page.
         for (var propertyName in ClientPickerDict) {
             if (propertyName == toSpanKey) {
@@ -126,8 +126,8 @@
         var peoplePicker = null;
 
         // Get the people picker object from the page.
-        //var peoplePicker = this.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
-        var ClientPickerDict = this.SPClientPeoplePicker.SPClientPeoplePickerDict;
+        //var peoplePicker = window.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
+        var ClientPickerDict = window.SPClientPeoplePicker.SPClientPeoplePickerDict;
         // Get the people picker object from the page.
         for (var propertyName in ClientPickerDict) {
             if (propertyName == toSpanKey) {
@@ -145,8 +145,8 @@
         var peoplePicker = null;
 
         // Get the people picker object from the page.
-        //var peoplePicker = this.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
-        var ClientPickerDict = this.SPClientPeoplePicker.SPClientPeoplePickerDict;
+        //var peoplePicker = window.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
+        var ClientPickerDict = window.SPClientPeoplePicker.SPClientPeoplePickerDict;
         // Get the people picker object from the page.
         for (var propertyName in ClientPickerDict) {
             if (propertyName == toSpanKey) {
@@ -166,8 +166,8 @@
         var peoplePicker = null;
 
         // Get the people picker object from the page.
-        //var peoplePicker = this.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
-        var ClientPickerDict = this.SPClientPeoplePicker.SPClientPeoplePickerDict;
+        //var peoplePicker = window.SPClientPeoplePicker.SPClientPeoplePickerDict.peoplePickerDiv_TopSpan;
+        var ClientPickerDict = window.SPClientPeoplePicker.SPClientPeoplePickerDict;
         // Get the people picker object from the page.
         for (var propertyName in ClientPickerDict) {
             if (propertyName == toSpanKey) {
