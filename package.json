@@ -10,7 +10,7 @@
     "SharePoint Export to excel from view"
   ],
   "dependencies": {
-    "jquery": "~> 3.0.0",
+     "jquery": ">=3.5.0",
     "sp.js": "SharePoint 2013",
     "sp.ui.dialog.js": "SharePoint 2013"
   },
